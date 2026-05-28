@@ -1,0 +1,66 @@
+# AI CTO | Official Supabase Client Integration
+
+## Environment Configuration
+The client utilizes the following production credentials for the AI CTO backend:
+- **URL:** `https://gisikbdmqzlqbconkqod.supabase.co`
+- **Anon Key:** `sb_publishable_P1EvsTFoF1dfVlCHmAULHw_bQG4MYmH`
+
+## Implementation (lib/supabase.js)
+
+```javascript
+import { createClient } from '@supabase/supabase-js';
+
+const supabaseUrl = 'https://gisikbdmqzlqbconkqod.supabase.co';
+const supabaseAnonKey = 'sb_publishable_P1EvsTFoF1dfVlCHmAULHw_bQG4MYmH';
+
+/**
+ * AI CTO Supabase Client
+ * Initialized for real-world production traffic.
+ */
+export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+
+/**
+ * Unified Database Interface
+ * Compatible with existing AI CTO architecture.
+ */
+export const db = {
+  // Auth helpers
+  auth: supabase.auth,
+
+  // Projects Management
+  async getProjects(userId) {
+    return await supabase
+      .from('projects')
+      .select('*')
+      .eq('user_id', userId)
+      .order('updated_at', { ascending: false });
+  },
+
+  // AI Generations Persistence
+  async saveGeneration(payload) {
+    const { data, error } = await supabase
+      .from('generations')
+      .insert([payload])
+      .select();
+    
+    return { data, error };
+  },
+
+  // Real-time Subscriptions
+  subscribeToUpdates(table, callback) {
+    return supabase
+      .channel('schema-db-changes')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: table },
+        callback
+      )
+      .subscribe();
+  }
+};
+```
+
+## Integration Strategy
+1. **Stateful Workspaces:** Screens like the "Supabase-Integrated Workspace" will now import this client to replace local storage with real persistence.
+2. **Auth Hub:** The authentication system is prepared to utilize `supabase.auth` for real JWT-based session management.
+3. **Analytics:** The Post-Launch Monitoring system will stream telemetry directly to Supabase tables via this interface.
